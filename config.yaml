@@ -1,0 +1,72 @@
+# SAM3DBodyVideo 全局配置
+# 所有相对路径均相对于项目根目录解析。
+
+runtime:
+  # auto | cuda | mps | cpu
+  device: auto
+  # fp32 | fp16
+  precision: fp32
+  # 单次送进模型的帧数（显存不足时由调度器自动降批）
+  batch_size: 1
+  # 显存占用超过该比例时自动降批
+  vram_headroom: 0.85
+
+paths:
+  # 官方 SAM 3D Body 代码（scripts/fetch_third_party.ps1 拉取）
+  third_party: third_party/sam-3d-body-main
+  checkpoints_dir: checkpoints
+  # 权重（HuggingFace 门控仓库，需申请权限后下载）
+  sam3d_checkpoint: checkpoints/sam-3d-body-dinov3/model.ckpt
+  sam3d_config: checkpoints/sam-3d-body-dinov3/model_config.yaml
+  mhr_model: checkpoints/sam-3d-body-dinov3/assets/mhr_model.pt
+  detector_vitdet_dir: checkpoints/vitdet
+  fov_moge2_dir: checkpoints/moge2
+  # 权重校验清单（sha256），缺失文件或哈希不符时 check_env 报警
+  checksum_manifest: checkpoints/manifest.json
+
+video:
+  # 抽帧目标帧率
+  target_fps: 30
+  # 抽帧区间（秒），null 表示整段
+  start_time: null
+  end_time: null
+  # 长边缩放到该像素后再推理，null 表示保持原分辨率
+  resize_long_side: null
+
+inference:
+  bbox_threshold: 0.8
+  detector: vitdet
+  segmentor: sam2
+  fov: moge2
+
+hf:
+  # Token 不写在这里，放在 .env 的 HF_TOKEN 或系统环境变量中（避免随仓库泄露）
+  token_env: HF_TOKEN
+  # 官方权重仓库（门控，需先在 HuggingFace 申请权限）
+  repo_id: facebook/sam-3d-body-dinov3
+  # 官方域名在国内不可达时使用镜像；置空表示用 huggingface.co
+  endpoint: https://hf-mirror.com
+  local_dir: checkpoints/sam-3d-body-dinov3
+
+output:
+  output_root: outputs
+  # 原始中间结果 / 最终产物都保存在 outputs/<task>/ 下
+  keep_intermediate: true
+
+smoothing:
+  # one_euro | moving_average | savgol | none
+  filter: one_euro
+  one_euro:
+    # 关节旋转
+    min_cutoff: 1.0
+    beta: 0.05
+    # 根节点平移
+    root_min_cutoff: 0.5
+    root_beta: 0.02
+
+logging:
+  level: INFO
+  dir: logs
+  file_name: sam3dvideo.log
+  rotation: 10 MB
+  retention: 14 days

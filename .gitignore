@@ -221,3 +221,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- SAM3DBodyVideo 项目自身 ----
+# 模型权重 / 数据集 / 输出产物 / 临时文件 / 第三方官方代码
+checkpoints/
+outputs/
+logs/
+.tmp/
+third_party/
